@@ -108,8 +108,13 @@ async fn main() -> Result<()> {
                 .add_address(seller_peer_id, seller_addr);
 
             let swap_id = Uuid::new_v4();
-            let (event_loop, mut event_loop_handle) =
-                EventLoop::new(swap_id, swarm, seller_peer_id, bitcoin_wallet.clone())?;
+            let (event_loop, mut event_loop_handle) = EventLoop::new(
+                swap_id,
+                swarm,
+                seller_peer_id,
+                bitcoin_wallet.clone(),
+                env_config,
+            )?;
             let event_loop = tokio::spawn(event_loop.run());
 
             let max_givable = || bitcoin_wallet.max_giveable(TxLock::script_size());
@@ -208,8 +213,13 @@ async fn main() -> Result<()> {
                 .behaviour_mut()
                 .add_address(seller_peer_id, seller_addr);
 
-            let (event_loop, event_loop_handle) =
-                EventLoop::new(swap_id, swarm, seller_peer_id, bitcoin_wallet.clone())?;
+            let (event_loop, event_loop_handle) = EventLoop::new(
+                swap_id,
+                swarm,
+                seller_peer_id,
+                bitcoin_wallet.clone(),
+                env_config,
+            )?;
             let handle = tokio::spawn(event_loop.run());
 
             let swap = Swap::from_db(

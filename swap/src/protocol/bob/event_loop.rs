@@ -1,10 +1,10 @@
 use crate::bitcoin::EncryptedSignature;
 use crate::network::quote::BidQuote;
-use crate::network::spot_price::Response;
+use crate::network::spot_price::{BlockchainNetwork, Response};
 use crate::network::{encrypted_signature, spot_price};
 use crate::protocol::bob;
 use crate::protocol::bob::{Behaviour, OutEvent, State0, State2};
-use crate::{bitcoin, monero};
+use crate::{bitcoin, env, monero};
 use anyhow::{bail, Context, Result};
 use futures::future::{BoxFuture, OptionFuture};
 use futures::{FutureExt, StreamExt};
@@ -12,6 +12,7 @@ use libp2p::request_response::{RequestId, ResponseChannel};
 use libp2p::swarm::SwarmEvent;
 use libp2p::{PeerId, Swarm};
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::Duration;
 use uuid::Uuid;
@@ -55,6 +56,7 @@ impl EventLoop {
         swarm: Swarm<Behaviour>,
         alice_peer_id: PeerId,
         bitcoin_wallet: Arc<bitcoin::Wallet>,
+        env_config: env::Config,
     ) -> Result<(Self, EventLoopHandle)> {
         let execution_setup = bmrng::channel_with_timeout(1, Duration::from_secs(30));
         let transfer_proof = bmrng::channel_with_timeout(1, Duration::from_secs(30));
@@ -85,6 +87,7 @@ impl EventLoop {
             encrypted_signature: encrypted_signature.0,
             spot_price: spot_price.0,
             quote: quote.0,
+            env_config,
         };
 
         Ok((event_loop, handle))
@@ -242,6 +245,7 @@ pub struct EventLoopHandle {
     encrypted_signature: bmrng::RequestSender<EncryptedSignature, ()>,
     spot_price: bmrng::RequestSender<spot_price::Request, spot_price::Response>,
     quote: bmrng::RequestSender<(), BidQuote>,
+    env_config: env::Config,
 }
 
 impl EventLoopHandle {
@@ -265,7 +269,13 @@ impl EventLoopHandle {
     pub async fn request_spot_price(&mut self, btc: bitcoin::Amount) -> Result<monero::Amount> {
         let response = self
             .spot_price
-            .send_receive(spot_price::Request { btc })
+            .send_receive(spot_price::Request {
+                btc,
+                blockchain_network: BlockchainNetwork {
+                    bitcoin: self.env_config.bitcoin_network.try_into()?,
+                    monero: self.env_config.monero_network.try_into()?,
+                },
+            })
             .await?;
 
         match response {

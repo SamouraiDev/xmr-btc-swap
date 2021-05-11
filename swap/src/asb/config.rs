@@ -335,7 +335,7 @@ mod tests {
 
             monero: Monero {
                 wallet_rpc_url: defaults.monero_wallet_rpc_url,
-                network: monero::Network::Testnet,
+                network: monero::Network::Stagenet,
             },
             tor: Default::default(),
             maker: Maker {

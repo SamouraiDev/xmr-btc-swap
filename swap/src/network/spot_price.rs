@@ -32,6 +32,7 @@ impl ProtocolName for SpotPriceProtocol {
 pub struct Request {
     #[serde(with = "::bitcoin::util::amount::serde::as_sat")]
     pub btc: bitcoin::Amount,
+    pub blockchain_network: BlockchainNetwork,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -59,10 +60,60 @@ pub enum Error {
         #[serde(with = "::bitcoin::util::amount::serde::as_sat")]
         buy: bitcoin::Amount,
     },
+    BlockchainNetworkMismatch {
+        cli: BlockchainNetwork,
+        asb: BlockchainNetwork,
+    },
     /// To be used for errors that cannot be explained on the CLI side (e.g.
     /// rate update problems on the seller side)
     Other,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub struct BlockchainNetwork {
+    pub bitcoin: BitcoinNetwork,
+    pub monero: MoneroNetwork,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub enum BitcoinNetwork {
+    Mainnet,
+    Testnet,
+    Signet,
+    Regtest,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+pub enum MoneroNetwork {
+    Mainnet,
+    Stagenet,
+    Testnet,
+}
+
+impl From<bitcoin::Network> for BitcoinNetwork {
+    fn from(network: bitcoin::Network) -> Self {
+        match network {
+            bitcoin::Network::Bitcoin => BitcoinNetwork::Mainnet,
+            bitcoin::Network::Testnet => BitcoinNetwork::Testnet,
+            bitcoin::Network::Signet => BitcoinNetwork::Signet,
+            bitcoin::Network::Regtest => BitcoinNetwork::Regtest,
+        }
+    }
+}
+
+impl From<monero::Network> for MoneroNetwork {
+    fn from(network: monero::Network) -> Self {
+        match network {
+            monero::Network::Mainnet => MoneroNetwork::Mainnet,
+            monero::Network::Stagenet => MoneroNetwork::Stagenet,
+            monero::Network::Testnet => MoneroNetwork::Testnet,
+        }
+    }
+}
+
+#[derive(thiserror::Error, Debug, Clone, Copy)]
+#[error("NetworkNotSupported")]
+pub struct NetworkNotSupported;
 
 #[cfg(test)]
 mod tests {
@@ -101,6 +152,21 @@ mod tests {
             buy: Default::default(),
         }))
         .unwrap();
+        assert_eq!(error, serialized);
+
+        let error = r#"{"Error":{"BlockchainNetworkMismatch":{"cli":{"bitcoin":"Mainnet","monero":"Mainnet"},"asb":{"bitcoin":"Testnet","monero":"Stagenet"}}}}"#.to_string();
+        let serialized =
+            serde_json::to_string(&Response::Error(Error::BlockchainNetworkMismatch {
+                cli: BlockchainNetwork {
+                    bitcoin: BitcoinNetwork::Mainnet,
+                    monero: MoneroNetwork::Mainnet,
+                },
+                asb: BlockchainNetwork {
+                    bitcoin: BitcoinNetwork::Testnet,
+                    monero: MoneroNetwork::Stagenet,
+                },
+            }))
+            .unwrap();
         assert_eq!(error, serialized);
 
         let error = r#"{"Error":"Other"}"#.to_string();
