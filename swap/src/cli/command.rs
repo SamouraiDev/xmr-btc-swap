@@ -7,16 +7,29 @@ use std::str::FromStr;
 use url::Url;
 use uuid::Uuid;
 
-pub const DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS: &str = "monero-stagenet.exan.tech:38081";
+// See: https://moneroworld.com/
+pub const DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS: &str = "node.moneroworld.com:18089";
+pub const DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS_TESTNET: &str = "monero-stagenet.exan.tech:38081";
 
-const DEFAULT_ELECTRUM_RPC_URL: &str = "ssl://electrum.blockstream.info:60002";
+// See: https://1209k.com/bitcoin-eye/ele.php?chain=btc
+const DEFAULT_ELECTRUM_RPC_URL: &str = "ssl://electrum.blockstream.info:50002";
+// See: https://1209k.com/bitcoin-eye/ele.php?chain=tbtc
+const DEFAULT_ELECTRUM_RPC_URL_TESTNET: &str = "ssl://electrum.blockstream.info:60002";
+
 const DEFAULT_BITCOIN_CONFIRMATION_TARGET: &str = "3";
+const DEFAULT_BITCOIN_CONFIRMATION_TARGET_TESTNET: &str = "1";
 
 const DEFAULT_TOR_SOCKS5_PORT: &str = "9050";
 
 #[derive(structopt::StructOpt, Debug)]
 #[structopt(name = "swap", about = "CLI for swapping BTC for XMR", author)]
 pub struct Arguments {
+    #[structopt(
+        long,
+        help = "Swap on testnet and assume testnet defaults for data-dir and the blockchain related parameters"
+    )]
+    pub testnet: bool,
+
     #[structopt(
         long = "--data-dir",
         help = "Provide the data directory path to be used to store application data",
@@ -104,26 +117,38 @@ pub struct Monero {
     #[structopt(
         long = "monero-daemon-address",
         help = "Specify to connect to a monero daemon of your choice: <host>:<port>",
-        default_value = DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS
+        default_value = DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS,
+        default_value_if("testnet", None, DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS_TESTNET),
     )]
     pub monero_daemon_address: String,
 }
 
 #[derive(structopt::StructOpt, Debug)]
 pub struct Bitcoin {
-    #[structopt(long = "electrum-rpc",
-    help = "Provide the Bitcoin Electrum RPC URL",
-    default_value = DEFAULT_ELECTRUM_RPC_URL
+    #[structopt(
+        long = "electrum-rpc",
+        help = "Provide the Bitcoin Electrum RPC URL",
+        default_value = DEFAULT_ELECTRUM_RPC_URL,
+        default_value_if("testnet", None, DEFAULT_ELECTRUM_RPC_URL_TESTNET),
     )]
     pub electrum_rpc_url: Url,
 
-    #[structopt(long = "bitcoin-target-block", help = "Within how many blocks should the Bitcoin transactions be confirmed.", default_value = DEFAULT_BITCOIN_CONFIRMATION_TARGET)]
+    #[structopt(
+        long = "bitcoin-target-block",
+        help = "Use for fee estimation, decides within how many blocks the Bitcoin transactions should be confirmed.",
+        default_value = DEFAULT_BITCOIN_CONFIRMATION_TARGET,
+        default_value_if("testnet", None, DEFAULT_BITCOIN_CONFIRMATION_TARGET_TESTNET),
+    )]
     pub bitcoin_target_block: usize,
 }
 
 #[derive(structopt::StructOpt, Debug)]
 pub struct Tor {
-    #[structopt(long = "tor-socks5-port", help = "Your local Tor socks5 proxy port", default_value = DEFAULT_TOR_SOCKS5_PORT)]
+    #[structopt(
+        long = "tor-socks5-port",
+        help = "Your local Tor socks5 proxy port",
+        default_value = DEFAULT_TOR_SOCKS5_PORT
+    )]
     pub tor_socks5_port: u16,
 }
 

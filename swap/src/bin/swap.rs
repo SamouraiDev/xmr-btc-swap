@@ -39,7 +39,24 @@ extern crate prettytable;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let Arguments { data, debug, cmd } = Arguments::from_args();
+    let Arguments {
+        testnet,
+        data,
+        debug,
+        cmd,
+    } = Arguments::from_args();
+
+    let (data_dir, env_config) = if testnet {
+        let data_dir = data.0.join("testnet");
+        let env_config = env::Testnet::get_config();
+
+        (data_dir, env_config)
+    } else {
+        let data_dir = data.0.join("mainnet");
+        let env_config = env::Mainnet::get_config();
+
+        (data_dir, env_config)
+    };
 
     match cmd {
         Command::BuyXmr {
@@ -59,13 +76,11 @@ async fn main() -> Result<()> {
         } => {
             let swap_id = Uuid::new_v4();
 
-            let data_dir = data.0;
             cli::tracing::init(debug, data_dir.join("logs"), swap_id)?;
             let db = Database::open(data_dir.join("database").as_path())
                 .context("Failed to open database")?;
             let seed = Seed::from_file_or_generate(data_dir.as_path())
                 .context("Failed to read in seed file")?;
-            let env_config = env::Testnet::get_config();
 
             if receive_monero_address.network != env_config.monero_network {
                 bail!(
@@ -133,8 +148,6 @@ async fn main() -> Result<()> {
             }
         }
         Command::History => {
-            let data_dir = data.0;
-
             let db = Database::open(data_dir.join("database").as_path())
                 .context("Failed to open database")?;
 
@@ -164,13 +177,11 @@ async fn main() -> Result<()> {
                 },
             tor: Tor { tor_socks5_port },
         } => {
-            let data_dir = data.0;
             cli::tracing::init(debug, data_dir.join("logs"), swap_id)?;
             let db = Database::open(data_dir.join("database").as_path())
                 .context("Failed to open database")?;
             let seed = Seed::from_file_or_generate(data_dir.as_path())
                 .context("Failed to read in seed file")?;
-            let env_config = env::Testnet::get_config();
 
             if receive_monero_address.network != env_config.monero_network {
                 bail!("The given monero address is on network {:?}, expected address of network {:?}.", receive_monero_address.network, env_config.monero_network)
@@ -229,13 +240,11 @@ async fn main() -> Result<()> {
                     bitcoin_target_block,
                 },
         } => {
-            let data_dir = data.0;
             cli::tracing::init(debug, data_dir.join("logs"), swap_id)?;
             let db = Database::open(data_dir.join("database").as_path())
                 .context("Failed to open database")?;
             let seed = Seed::from_file_or_generate(data_dir.as_path())
                 .context("Failed to read in seed file")?;
-            let env_config = env::Testnet::get_config();
 
             let bitcoin_wallet = init_bitcoin_wallet(
                 electrum_rpc_url,
@@ -266,13 +275,11 @@ async fn main() -> Result<()> {
                     bitcoin_target_block,
                 },
         } => {
-            let data_dir = data.0;
             cli::tracing::init(debug, data_dir.join("logs"), swap_id)?;
             let db = Database::open(data_dir.join("database").as_path())
                 .context("Failed to open database")?;
             let seed = Seed::from_file_or_generate(data_dir.as_path())
                 .context("Failed to read in seed file")?;
-            let env_config = env::Testnet::get_config();
 
             let bitcoin_wallet = init_bitcoin_wallet(
                 electrum_rpc_url,
