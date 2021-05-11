@@ -82,7 +82,7 @@ async fn main() -> Result<()> {
             let seed = Seed::from_file_or_generate(data_dir.as_path())
                 .context("Failed to read in seed file")?;
 
-            if receive_monero_address.network != env_config.monero_network {
+            if receive_monero_address.network != env_config.monero_network.into() {
                 bail!(
                     "Given monero address is on network {:?}, expected address on network {:?}",
                     receive_monero_address.network,
@@ -183,7 +183,7 @@ async fn main() -> Result<()> {
             let seed = Seed::from_file_or_generate(data_dir.as_path())
                 .context("Failed to read in seed file")?;
 
-            if receive_monero_address.network != env_config.monero_network {
+            if receive_monero_address.network != env_config.monero_network.into() {
                 bail!("The given monero address is on network {:?}, expected address of network {:?}.", receive_monero_address.network, env_config.monero_network)
             }
 
@@ -332,7 +332,7 @@ async fn init_monero_wallet(
     let monero_wallet_rpc = monero::WalletRpc::new(data_dir.join("monero")).await?;
 
     let monero_wallet_rpc_process = monero_wallet_rpc
-        .run(network, monero_daemon_address.as_str())
+        .run(network.into(), monero_daemon_address.as_str())
         .await?;
 
     let monero_wallet = monero::Wallet::open_or_create(
