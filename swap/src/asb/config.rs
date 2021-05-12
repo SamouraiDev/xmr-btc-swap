@@ -121,6 +121,7 @@ pub struct Network {
 pub struct Bitcoin {
     pub electrum_rpc_url: Url,
     pub target_block: usize,
+    pub finality_confirmations: Option<u32>,
     pub network: bitcoin::Network,
 }
 
@@ -128,6 +129,7 @@ pub struct Bitcoin {
 #[serde(deny_unknown_fields)]
 pub struct Monero {
     pub wallet_rpc_url: Url,
+    pub finality_confirmations: Option<u64>,
     pub network: monero::Network,
 }
 
@@ -290,10 +292,12 @@ pub fn query_user_for_initial_config(testnet: bool) -> Result<Config> {
         bitcoin: Bitcoin {
             electrum_rpc_url,
             target_block,
+            finality_confirmations: None,
             network: bitcoin_network,
         },
         monero: Monero {
             wallet_rpc_url: monero_wallet_rpc_url,
+            finality_confirmations: None,
             network: monero_network,
         },
         tor: TorConf {
@@ -327,6 +331,7 @@ mod tests {
             bitcoin: Bitcoin {
                 electrum_rpc_url: defaults.electrum_rpc_url,
                 target_block: defaults.bitcoin_confirmation_target,
+                finality_confirmations: None,
                 network: bitcoin::Network::Testnet,
             },
             network: Network {
@@ -335,6 +340,7 @@ mod tests {
 
             monero: Monero {
                 wallet_rpc_url: defaults.monero_wallet_rpc_url,
+                finality_confirmations: None,
                 network: monero::Network::Stagenet,
             },
             tor: Default::default(),
@@ -365,6 +371,7 @@ mod tests {
             bitcoin: Bitcoin {
                 electrum_rpc_url: defaults.electrum_rpc_url,
                 target_block: defaults.bitcoin_confirmation_target,
+                finality_confirmations: None,
                 network: bitcoin::Network::Bitcoin,
             },
             network: Network {
@@ -373,6 +380,7 @@ mod tests {
 
             monero: Monero {
                 wallet_rpc_url: defaults.monero_wallet_rpc_url,
+                finality_confirmations: None,
                 network: monero::Network::Mainnet,
             },
             tor: Default::default(),

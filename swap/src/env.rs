@@ -25,6 +25,22 @@ impl Config {
     pub fn monero_sync_interval(&self) -> Duration {
         sync_interval(self.monero_avg_block_time)
     }
+
+    pub fn with_bitcoin_finality_confirmations(
+        mut self,
+        bitcoin_finality_confirmations: u32,
+    ) -> Config {
+        self.bitcoin_finality_confirmations = bitcoin_finality_confirmations;
+        self
+    }
+
+    pub fn with_monero_finality_confirmations(
+        mut self,
+        monero_finality_confirmations: u64,
+    ) -> Config {
+        self.monero_finality_confirmations = monero_finality_confirmations;
+        self
+    }
 }
 
 pub trait GetConfig {
