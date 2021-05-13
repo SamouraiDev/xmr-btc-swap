@@ -101,12 +101,12 @@ impl From<bitcoin::Network> for BitcoinNetwork {
     }
 }
 
-impl From<monero::Network> for MoneroNetwork {
+impl From<::monero::Network> for MoneroNetwork {
     fn from(network: monero::Network) -> Self {
         match network {
-            monero::Network::Mainnet => MoneroNetwork::Mainnet,
-            monero::Network::Stagenet => MoneroNetwork::Stagenet,
-            monero::Network::Testnet => MoneroNetwork::Testnet,
+            ::monero::Network::Mainnet => MoneroNetwork::Mainnet,
+            ::monero::Network::Stagenet => MoneroNetwork::Stagenet,
+            ::monero::Network::Testnet => MoneroNetwork::Testnet,
         }
     }
 }
