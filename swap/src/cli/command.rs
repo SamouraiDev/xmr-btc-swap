@@ -12,8 +12,8 @@ use url::Url;
 use uuid::Uuid;
 
 // See: https://moneroworld.com/
-pub const DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS: &str = "node.moneroworld.com:18089";
-pub const DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS_TESTNET: &str = "monero-stagenet.exan.tech:38081";
+pub const DEFAULT_MONERO_DAEMON_ADDRESS: &str = "node.moneroworld.com:18089";
+pub const DEFAULT_MONERO_DAEMON_ADDRESS_STAGENET: &str = "monero-stagenet.exan.tech:38081";
 
 // See: https://1209k.com/bitcoin-eye/ele.php?chain=btc
 const DEFAULT_ELECTRUM_RPC_URL: &str = "ssl://electrum.blockstream.info:50002";
@@ -21,7 +21,7 @@ const DEFAULT_ELECTRUM_RPC_URL: &str = "ssl://electrum.blockstream.info:50002";
 pub const DEFAULT_ELECTRUM_RPC_URL_TESTNET: &str = "ssl://electrum.blockstream.info:60002";
 
 const DEFAULT_BITCOIN_CONFIRMATION_TARGET: usize = 3;
-const DEFAULT_BITCOIN_CONFIRMATION_TARGET_TESTNET: usize = 3;
+const DEFAULT_BITCOIN_CONFIRMATION_TARGET_TESTNET: usize = 1;
 
 const DEFAULT_TOR_SOCKS5_PORT: &str = "9050";
 
@@ -395,9 +395,9 @@ fn monero_daemon_address_from(address: Option<String>, testnet: bool) -> String 
     if let Some(address) = address {
         address
     } else if testnet {
-        DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS_TESTNET.to_string()
+        DEFAULT_MONERO_DAEMON_ADDRESS_STAGENET.to_string()
     } else {
-        DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS.to_string()
+        DEFAULT_MONERO_DAEMON_ADDRESS.to_string()
     }
 }
 
