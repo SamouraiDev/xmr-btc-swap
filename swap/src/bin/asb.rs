@@ -26,7 +26,6 @@ use swap::asb::config::{
     GetDefaults,
 };
 use swap::database::Database;
-use swap::env::GetConfig;
 use swap::monero::Amount;
 use swap::network::swarm;
 use swap::protocol::alice;
@@ -69,7 +68,7 @@ async fn main() -> Result<()> {
         }
     };
 
-    let env_config = get_env_config_from_defaults_and_config(testnet, &config);
+    let env_config = env::new(testnet, &config);
 
     if config.monero.network != env_config.monero_network {
         bail!(format!(
@@ -372,25 +371,4 @@ async fn register_tor_services(
     });
 
     Ok(ac)
-}
-
-fn get_env_config_from_defaults_and_config(testnet: bool, config: &Config) -> env::Config {
-    let env_config = if testnet {
-        env::Testnet::get_config()
-    } else {
-        env::Mainnet::get_config()
-    };
-
-    let env_config =
-        if let Some(bitcoin_finality_confirmations) = config.bitcoin.finality_confirmations {
-            env_config.with_bitcoin_finality_confirmations(bitcoin_finality_confirmations)
-        } else {
-            env_config
-        };
-
-    if let Some(monero_finality_confirmations) = config.monero.finality_confirmations {
-        env_config.with_monero_finality_confirmations(monero_finality_confirmations)
-    } else {
-        env_config
-    }
 }
