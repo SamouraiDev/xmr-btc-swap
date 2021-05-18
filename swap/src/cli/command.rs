@@ -461,6 +461,310 @@ mod tests {
     const PEER_ID: &str = "12D3KooWCdMKjesXMJz1SiZ7HgotrxuqhQJbP5sgBm2BwP1cqThi";
     const SWAP_ID: &str = "ea030832-3be9-454f-bb98-5ea9a788406b";
 
+    #[test]
+    fn given_buy_xmr_on_mainnet_then_defaults_to_mainnet() {
+        let raw_ars = vec![
+            BINARY_NAME,
+            "buy-xmr",
+            "--receive-address",
+            MONERO_MAINNET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+            "--seller-peer-id",
+            PEER_ID,
+        ];
+
+        let expected_args = Arguments::buy_xmr_mainnet_defaults();
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(expected_args, args);
+    }
+
+    #[test]
+    fn given_buy_xmr_on_testnet_then_defaults_to_testnet() {
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--testnet",
+            "buy-xmr",
+            "--receive-address",
+            MONERO_STAGENET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+            "--seller-peer-id",
+            PEER_ID,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::buy_xmr_testnet_defaults());
+    }
+
+    #[test]
+    fn given_buy_xmr_on_mainnet_with_testnet_address_then_fails() {
+        let raw_ars = vec![
+            BINARY_NAME,
+            "buy-xmr",
+            "--receive-address",
+            MONERO_STAGENET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+            "--seller-peer-id",
+            PEER_ID,
+        ];
+
+        let err = parse_args_and_apply_defaults(raw_ars).unwrap_err();
+
+        assert_eq!(
+            err.downcast_ref::<MoneroAddressNetworkMismatch>().unwrap(),
+            &MoneroAddressNetworkMismatch {
+                expected: monero::Network::Mainnet,
+                actual: monero::Network::Stagenet
+            }
+        );
+    }
+
+    #[test]
+    fn given_buy_xmr_on_testnet_with_mainnet_address_then_fails() {
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--testnet",
+            "buy-xmr",
+            "--receive-address",
+            MONERO_MAINNET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+            "--seller-peer-id",
+            PEER_ID,
+        ];
+
+        let err = parse_args_and_apply_defaults(raw_ars).unwrap_err();
+
+        assert_eq!(
+            err.downcast_ref::<MoneroAddressNetworkMismatch>().unwrap(),
+            &MoneroAddressNetworkMismatch {
+                expected: monero::Network::Stagenet,
+                actual: monero::Network::Mainnet
+            }
+        );
+    }
+
+    #[test]
+    fn given_resume_on_mainnet_then_defaults_to_mainnet() {
+        let raw_ars = vec![
+            BINARY_NAME,
+            "resume",
+            "--swap-id",
+            SWAP_ID,
+            "--receive-address",
+            MONERO_MAINNET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::resume_mainnet_defaults());
+    }
+
+    #[test]
+    fn given_resume_on_testnet_then_defaults_to_testnet() {
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--testnet",
+            "resume",
+            "--swap-id",
+            SWAP_ID,
+            "--receive-address",
+            MONERO_STAGENET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::resume_testnet_defaults());
+    }
+
+    #[test]
+    fn given_cancel_on_mainnet_then_defaults_to_mainnet() {
+        let raw_ars = vec![BINARY_NAME, "cancel", "--swap-id", SWAP_ID];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::cancel_mainnet_defaults());
+    }
+
+    #[test]
+    fn given_cancel_on_testnet_then_defaults_to_testnet() {
+        let raw_ars = vec![BINARY_NAME, "--testnet", "cancel", "--swap-id", SWAP_ID];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::cancel_testnet_defaults());
+    }
+
+    #[test]
+    fn given_refund_on_mainnet_then_defaults_to_mainnet() {
+        let raw_ars = vec![BINARY_NAME, "refund", "--swap-id", SWAP_ID];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::refund_mainnet_defaults());
+    }
+
+    #[test]
+    fn given_refund_on_testnet_then_defaults_to_testnet() {
+        let raw_ars = vec![BINARY_NAME, "--testnet", "refund", "--swap-id", SWAP_ID];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::refund_testnet_defaults());
+    }
+
+    #[test]
+    fn given_with_data_dir_then_data_dir_set() {
+        let data_dir = "/some/path/to/dir";
+
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--data-dir",
+            data_dir,
+            "buy-xmr",
+            "--receive-address",
+            MONERO_MAINNET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+            "--seller-peer-id",
+            PEER_ID,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(
+            args,
+            Arguments::buy_xmr_mainnet_defaults()
+                .with_data_dir(PathBuf::from_str(data_dir).unwrap())
+        );
+
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--testnet",
+            "--data-dir",
+            data_dir,
+            "buy-xmr",
+            "--receive-address",
+            MONERO_STAGENET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+            "--seller-peer-id",
+            PEER_ID,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(
+            args,
+            Arguments::buy_xmr_testnet_defaults()
+                .with_data_dir(PathBuf::from_str(data_dir).unwrap())
+        );
+
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--data-dir",
+            data_dir,
+            "resume",
+            "--swap-id",
+            SWAP_ID,
+            "--receive-address",
+            MONERO_MAINNET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(
+            args,
+            Arguments::resume_mainnet_defaults()
+                .with_data_dir(PathBuf::from_str(data_dir).unwrap())
+        );
+
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--testnet",
+            "--data-dir",
+            data_dir,
+            "resume",
+            "--swap-id",
+            SWAP_ID,
+            "--receive-address",
+            MONERO_STAGENET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(
+            args,
+            Arguments::resume_testnet_defaults()
+                .with_data_dir(PathBuf::from_str(data_dir).unwrap())
+        );
+    }
+
+    #[test]
+    fn given_with_debug_then_debug_set() {
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--debug",
+            "buy-xmr",
+            "--receive-address",
+            MONERO_MAINNET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+            "--seller-peer-id",
+            PEER_ID,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::buy_xmr_mainnet_defaults().with_debug());
+
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--testnet",
+            "--debug",
+            "buy-xmr",
+            "--receive-address",
+            MONERO_STAGENET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+            "--seller-peer-id",
+            PEER_ID,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::buy_xmr_testnet_defaults().with_debug());
+
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--debug",
+            "resume",
+            "--swap-id",
+            SWAP_ID,
+            "--receive-address",
+            MONERO_MAINNET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::resume_mainnet_defaults().with_debug());
+
+        let raw_ars = vec![
+            BINARY_NAME,
+            "--testnet",
+            "--debug",
+            "resume",
+            "--swap-id",
+            SWAP_ID,
+            "--receive-address",
+            MONERO_STAGENET_ADDRESS,
+            "--seller-addr",
+            MUTLI_ADDRESS,
+        ];
+
+        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
+        assert_eq!(args, Arguments::resume_testnet_defaults().with_debug());
+    }
+
     impl Arguments {
         pub fn buy_xmr_testnet_defaults() -> Self {
             Self {
@@ -475,8 +779,7 @@ mod tests {
                     bitcoin_target_block: DEFAULT_BITCOIN_CONFIRMATION_TARGET_TESTNET,
                     monero_receive_address: monero::Address::from_str(MONERO_STAGENET_ADDRESS)
                         .unwrap(),
-                    monero_daemon_address: DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS_TESTNET
-                        .to_string(),
+                    monero_daemon_address: DEFAULT_MONERO_DAEMON_ADDRESS_STAGENET.to_string(),
                     tor_socks5_port: DEFAULT_SOCKS5_PORT,
                 },
             }
@@ -494,7 +797,7 @@ mod tests {
                     bitcoin_target_block: DEFAULT_BITCOIN_CONFIRMATION_TARGET,
                     monero_receive_address: monero::Address::from_str(MONERO_MAINNET_ADDRESS)
                         .unwrap(),
-                    monero_daemon_address: DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS.to_string(),
+                    monero_daemon_address: DEFAULT_MONERO_DAEMON_ADDRESS.to_string(),
                     tor_socks5_port: DEFAULT_SOCKS5_PORT,
                 },
             }
@@ -513,8 +816,7 @@ mod tests {
                     bitcoin_target_block: DEFAULT_BITCOIN_CONFIRMATION_TARGET_TESTNET,
                     monero_receive_address: monero::Address::from_str(MONERO_STAGENET_ADDRESS)
                         .unwrap(),
-                    monero_daemon_address: DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS_TESTNET
-                        .to_string(),
+                    monero_daemon_address: DEFAULT_MONERO_DAEMON_ADDRESS_STAGENET.to_string(),
                     tor_socks5_port: DEFAULT_SOCKS5_PORT,
                 },
             }
@@ -532,7 +834,7 @@ mod tests {
                     bitcoin_target_block: DEFAULT_BITCOIN_CONFIRMATION_TARGET,
                     monero_receive_address: monero::Address::from_str(MONERO_MAINNET_ADDRESS)
                         .unwrap(),
-                    monero_daemon_address: DEFAULT_STAGENET_MONERO_DAEMON_ADDRESS.to_string(),
+                    monero_daemon_address: DEFAULT_MONERO_DAEMON_ADDRESS.to_string(),
                     tor_socks5_port: DEFAULT_SOCKS5_PORT,
                 },
             }
@@ -609,312 +911,5 @@ mod tests {
 
     fn data_dir_path_cli() -> PathBuf {
         system_data_dir().unwrap().join("cli")
-    }
-
-    #[test]
-    fn given_buy_xmr_on_mainnet_then_defaults_to_mainnet() {
-        let raw_ars = vec![
-            BINARY_NAME,
-            "buy-xmr",
-            "--receive-address",
-            MONERO_MAINNET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-            "--seller-peer-id",
-            PEER_ID,
-        ];
-
-        let expected_args = Arguments::buy_xmr_mainnet_defaults();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-    }
-
-    #[test]
-    fn given_buy_xmr_on_testnet_then_defaults_to_testnet() {
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--testnet",
-            "buy-xmr",
-            "--receive-address",
-            MONERO_STAGENET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-            "--seller-peer-id",
-            PEER_ID,
-        ];
-
-        let expected_args = Arguments::buy_xmr_testnet_defaults();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-    }
-
-    #[test]
-    fn given_buy_xmr_on_mainnet_with_testnet_address_then_fails() {
-        let raw_ars = vec![
-            BINARY_NAME,
-            "buy-xmr",
-            "--receive-address",
-            MONERO_STAGENET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-            "--seller-peer-id",
-            PEER_ID,
-        ];
-
-        let err = parse_args_and_apply_defaults(raw_ars).unwrap_err();
-
-        assert_eq!(
-            err.downcast_ref::<MoneroAddressNetworkMismatch>().unwrap(),
-            &MoneroAddressNetworkMismatch {
-                expected: monero::Network::Mainnet,
-                actual: monero::Network::Stagenet
-            }
-        );
-    }
-
-    #[test]
-    fn given_buy_xmr_on_testnet_with_mainnet_address_then_fails() {
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--testnet",
-            "buy-xmr",
-            "--receive-address",
-            MONERO_MAINNET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-            "--seller-peer-id",
-            PEER_ID,
-        ];
-
-        let err = parse_args_and_apply_defaults(raw_ars).unwrap_err();
-
-        assert_eq!(
-            err.downcast_ref::<MoneroAddressNetworkMismatch>().unwrap(),
-            &MoneroAddressNetworkMismatch {
-                expected: monero::Network::Stagenet,
-                actual: monero::Network::Mainnet
-            }
-        );
-    }
-
-    #[test]
-    fn given_resume_on_mainnet_then_defaults_to_mainnet() {
-        let raw_ars = vec![
-            BINARY_NAME,
-            "resume",
-            "--swap-id",
-            SWAP_ID,
-            "--receive-address",
-            MONERO_MAINNET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-        ];
-
-        let expected_args = Arguments::resume_mainnet_defaults();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-    }
-
-    #[test]
-    fn given_resume_on_testnet_then_defaults_to_testnet() {
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--testnet",
-            "resume",
-            "--swap-id",
-            SWAP_ID,
-            "--receive-address",
-            MONERO_STAGENET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-        ];
-
-        let expected_args = Arguments::resume_testnet_defaults();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-    }
-
-    #[test]
-    fn given_cancel_on_mainnet_then_defaults_to_mainnet() {
-        let raw_ars = vec![BINARY_NAME, "cancel", "--swap-id", SWAP_ID];
-
-        let expected_args = Arguments::cancel_mainnet_defaults();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-    }
-
-    #[test]
-    fn given_cancel_on_testnet_then_defaults_to_testnet() {
-        let raw_ars = vec![BINARY_NAME, "--testnet", "cancel", "--swap-id", SWAP_ID];
-
-        let expected_args = Arguments::cancel_testnet_defaults();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-    }
-
-    #[test]
-    fn given_refund_on_mainnet_then_defaults_to_mainnet() {
-        let raw_ars = vec![BINARY_NAME, "refund", "--swap-id", SWAP_ID];
-
-        let expected_args = Arguments::refund_mainnet_defaults();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-    }
-
-    #[test]
-    fn given_refund_on_testnet_then_defaults_to_testnet() {
-        let raw_ars = vec![BINARY_NAME, "--testnet", "refund", "--swap-id", SWAP_ID];
-
-        let expected_args = Arguments::refund_testnet_defaults();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-    }
-
-    #[test]
-    fn given_with_data_dir_then_data_dir_set() {
-        let data_dir = "/some/path/to/dir";
-
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--data-dir",
-            data_dir,
-            "buy-xmr",
-            "--receive-address",
-            MONERO_MAINNET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-            "--seller-peer-id",
-            PEER_ID,
-        ];
-
-        let expected_args = Arguments::buy_xmr_mainnet_defaults()
-            .with_data_dir(PathBuf::from_str(data_dir).unwrap());
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--testnet",
-            "--data-dir",
-            data_dir,
-            "buy-xmr",
-            "--receive-address",
-            MONERO_STAGENET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-            "--seller-peer-id",
-            PEER_ID,
-        ];
-
-        let expected_args = Arguments::buy_xmr_testnet_defaults()
-            .with_data_dir(PathBuf::from_str(data_dir).unwrap());
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--data-dir",
-            data_dir,
-            "resume",
-            "--swap-id",
-            SWAP_ID,
-            "--receive-address",
-            MONERO_MAINNET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-        ];
-
-        let expected_args = Arguments::resume_mainnet_defaults()
-            .with_data_dir(PathBuf::from_str(data_dir).unwrap());
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--testnet",
-            "--data-dir",
-            data_dir,
-            "resume",
-            "--swap-id",
-            SWAP_ID,
-            "--receive-address",
-            MONERO_STAGENET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-        ];
-
-        let expected_args = Arguments::resume_testnet_defaults()
-            .with_data_dir(PathBuf::from_str(data_dir).unwrap());
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-    }
-
-    #[test]
-    fn given_with_debug_then_debug_set() {
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--debug",
-            "buy-xmr",
-            "--receive-address",
-            MONERO_MAINNET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-            "--seller-peer-id",
-            PEER_ID,
-        ];
-
-        let expected_args = Arguments::buy_xmr_mainnet_defaults().with_debug();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--testnet",
-            "--debug",
-            "buy-xmr",
-            "--receive-address",
-            MONERO_STAGENET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-            "--seller-peer-id",
-            PEER_ID,
-        ];
-
-        let expected_args = Arguments::buy_xmr_testnet_defaults().with_debug();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--debug",
-            "resume",
-            "--swap-id",
-            SWAP_ID,
-            "--receive-address",
-            MONERO_MAINNET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-        ];
-
-        let expected_args = Arguments::resume_mainnet_defaults().with_debug();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
-
-        let raw_ars = vec![
-            BINARY_NAME,
-            "--testnet",
-            "--debug",
-            "resume",
-            "--swap-id",
-            SWAP_ID,
-            "--receive-address",
-            MONERO_STAGENET_ADDRESS,
-            "--seller-addr",
-            MUTLI_ADDRESS,
-        ];
-
-        let expected_args = Arguments::resume_testnet_defaults().with_debug();
-        let args = parse_args_and_apply_defaults(raw_ars).unwrap();
-        assert_eq!(expected_args, args);
     }
 }
