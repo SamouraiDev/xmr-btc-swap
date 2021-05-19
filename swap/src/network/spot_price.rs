@@ -71,49 +71,11 @@ pub enum Error {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub struct BlockchainNetwork {
-    pub bitcoin: BitcoinNetwork,
-    pub monero: MoneroNetwork,
+    #[serde(with = "crate::bitcoin::network")]
+    pub bitcoin: bitcoin::Network,
+    #[serde(with = "crate::monero::network")]
+    pub monero: monero::Network,
 }
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-pub enum BitcoinNetwork {
-    Mainnet,
-    Testnet,
-    Signet,
-    Regtest,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
-pub enum MoneroNetwork {
-    Mainnet,
-    Stagenet,
-    Testnet,
-}
-
-impl From<bitcoin::Network> for BitcoinNetwork {
-    fn from(network: bitcoin::Network) -> Self {
-        match network {
-            bitcoin::Network::Bitcoin => BitcoinNetwork::Mainnet,
-            bitcoin::Network::Testnet => BitcoinNetwork::Testnet,
-            bitcoin::Network::Signet => BitcoinNetwork::Signet,
-            bitcoin::Network::Regtest => BitcoinNetwork::Regtest,
-        }
-    }
-}
-
-impl From<::monero::Network> for MoneroNetwork {
-    fn from(network: monero::Network) -> Self {
-        match network {
-            ::monero::Network::Mainnet => MoneroNetwork::Mainnet,
-            ::monero::Network::Stagenet => MoneroNetwork::Stagenet,
-            ::monero::Network::Testnet => MoneroNetwork::Testnet,
-        }
-    }
-}
-
-#[derive(thiserror::Error, Debug, Clone, Copy)]
-#[error("NetworkNotSupported")]
-pub struct NetworkNotSupported;
 
 #[cfg(test)]
 mod tests {
@@ -158,12 +120,12 @@ mod tests {
         let serialized =
             serde_json::to_string(&Response::Error(Error::BlockchainNetworkMismatch {
                 cli: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Mainnet,
-                    monero: MoneroNetwork::Mainnet,
+                    bitcoin: bitcoin::Network::Bitcoin,
+                    monero: monero::Network::Mainnet,
                 },
                 asb: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Testnet,
-                    monero: MoneroNetwork::Stagenet,
+                    bitcoin: bitcoin::Network::Testnet,
+                    monero: monero::Network::Stagenet,
                 },
             }))
             .unwrap();

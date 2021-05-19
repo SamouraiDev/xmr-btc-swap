@@ -159,8 +159,8 @@ where
         };
 
         let blockchain_network = BlockchainNetwork {
-            bitcoin: self.env_config.bitcoin_network.into(),
-            monero: self.env_config.monero_network.into(),
+            bitcoin: self.env_config.bitcoin_network,
+            monero: self.env_config.monero_network,
         };
 
         if request.blockchain_network != blockchain_network {
@@ -306,7 +306,6 @@ mod tests {
     use crate::asb::Rate;
     use crate::env::GetConfig;
     use crate::monero;
-    use crate::network::spot_price::{BitcoinNetwork, MoneroNetwork};
     use crate::network::test::{await_events_or_timeout, connect, new_swarm};
     use crate::protocol::{alice, bob};
     use anyhow::anyhow;
@@ -513,22 +512,22 @@ mod tests {
         test.assert_error(
             alice::spot_price::Error::BlockchainNetworkMismatch {
                 cli: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Testnet,
-                    monero: MoneroNetwork::Stagenet,
+                    bitcoin: bitcoin::Network::Testnet,
+                    monero: monero::Network::Stagenet,
                 },
                 asb: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Mainnet,
-                    monero: MoneroNetwork::Mainnet,
+                    bitcoin: bitcoin::Network::Bitcoin,
+                    monero: monero::Network::Mainnet,
                 },
             },
             bob::spot_price::Error::BlockchainNetworkMismatch {
                 cli: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Testnet,
-                    monero: MoneroNetwork::Stagenet,
+                    bitcoin: bitcoin::Network::Testnet,
+                    monero: monero::Network::Stagenet,
                 },
                 asb: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Mainnet,
-                    monero: MoneroNetwork::Mainnet,
+                    bitcoin: bitcoin::Network::Bitcoin,
+                    monero: monero::Network::Mainnet,
                 },
             },
         )
@@ -543,8 +542,8 @@ mod tests {
         let request = spot_price::Request {
             btc: btc_to_swap,
             blockchain_network: BlockchainNetwork {
-                bitcoin: BitcoinNetwork::Mainnet,
-                monero: MoneroNetwork::Mainnet,
+                bitcoin: bitcoin::Network::Bitcoin,
+                monero: monero::Network::Mainnet,
             },
         };
 
@@ -552,22 +551,22 @@ mod tests {
         test.assert_error(
             alice::spot_price::Error::BlockchainNetworkMismatch {
                 cli: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Mainnet,
-                    monero: MoneroNetwork::Mainnet,
+                    bitcoin: bitcoin::Network::Bitcoin,
+                    monero: monero::Network::Mainnet,
                 },
                 asb: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Testnet,
-                    monero: MoneroNetwork::Stagenet,
+                    bitcoin: bitcoin::Network::Testnet,
+                    monero: monero::Network::Stagenet,
                 },
             },
             bob::spot_price::Error::BlockchainNetworkMismatch {
                 cli: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Mainnet,
-                    monero: MoneroNetwork::Mainnet,
+                    bitcoin: bitcoin::Network::Bitcoin,
+                    monero: monero::Network::Mainnet,
                 },
                 asb: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Testnet,
-                    monero: MoneroNetwork::Stagenet,
+                    bitcoin: bitcoin::Network::Testnet,
+                    monero: monero::Network::Stagenet,
                 },
             },
         )
@@ -609,8 +608,8 @@ mod tests {
             let request = spot_price::Request {
                 btc: btc_to_swap,
                 blockchain_network: BlockchainNetwork {
-                    bitcoin: BitcoinNetwork::Testnet,
-                    monero: MoneroNetwork::Stagenet,
+                    bitcoin: bitcoin::Network::Testnet,
+                    monero: monero::Network::Stagenet,
                 },
             };
             self.send_request(request);

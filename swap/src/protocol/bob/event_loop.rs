@@ -12,7 +12,6 @@ use libp2p::request_response::{RequestId, ResponseChannel};
 use libp2p::swarm::SwarmEvent;
 use libp2p::{PeerId, Swarm};
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::sync::Arc;
 use std::time::Duration;
 use uuid::Uuid;
@@ -272,8 +271,8 @@ impl EventLoopHandle {
             .send_receive(spot_price::Request {
                 btc,
                 blockchain_network: BlockchainNetwork {
-                    bitcoin: self.env_config.bitcoin_network.try_into()?,
-                    monero: self.env_config.monero_network.try_into()?,
+                    bitcoin: self.env_config.bitcoin_network,
+                    monero: self.env_config.monero_network,
                 },
             })
             .await?;

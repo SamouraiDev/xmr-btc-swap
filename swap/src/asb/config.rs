@@ -123,6 +123,7 @@ pub struct Bitcoin {
     pub electrum_rpc_url: Url,
     pub target_block: usize,
     pub finality_confirmations: Option<u32>,
+    #[serde(with = "crate::bitcoin::network")]
     pub network: bitcoin::Network,
 }
 
