@@ -358,18 +358,16 @@ where
         bid_quote.price
     );
 
-    let mut current_maximum_giveable = max_giveable().await?;
+    let mut maximum_giveable = max_giveable().await?;
 
-    let max_giveable = if current_maximum_giveable == bitcoin::Amount::ZERO
-        || current_maximum_giveable < bid_quote.min_quantity
-    {
+    if maximum_giveable == bitcoin::Amount::ZERO || maximum_giveable < bid_quote.min_quantity {
         let deposit_address = get_new_address.await?;
         let minimum_amount = bid_quote.min_quantity;
         let maximum_amount = bid_quote.max_quantity;
 
         info!(
             %deposit_address,
-            %current_maximum_giveable,
+            %maximum_giveable,
             %minimum_amount,
             %maximum_amount,
             "Please deposit BTC you want to swap to",
@@ -380,17 +378,17 @@ where
 
             let new_max_givable = max_giveable().await?;
 
-            if new_max_givable != current_maximum_giveable {
-                current_maximum_giveable = new_max_givable;
+            if new_max_givable != maximum_giveable {
+                maximum_giveable = new_max_givable;
 
                 let new_balance = balance().await?;
                 tracing::info!(
                     %new_balance,
-                    %current_maximum_giveable,
+                    %maximum_giveable,
                     "Received BTC",
                 );
 
-                if current_maximum_giveable >= bid_quote.min_quantity {
+                if maximum_giveable >= bid_quote.min_quantity {
                     break;
                 } else {
                     tracing::info!(
@@ -403,10 +401,6 @@ where
 
             tokio::time::sleep(Duration::from_secs(1)).await;
         }
-
-        current_maximum_giveable
-    } else {
-        current_maximum_giveable
     };
 
     let balance = balance().await?;
