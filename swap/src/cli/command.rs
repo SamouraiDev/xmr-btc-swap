@@ -45,7 +45,7 @@ where
     let is_testnet = args.testnet;
     let data = args.data;
 
-    match args.cmd {
+    let arguments = match args.cmd {
         RawCommand::BuyXmr {
             seller_peer_id,
             seller_addr: SellerAddr { seller_addr },
@@ -60,7 +60,7 @@ where
                     monero_daemon_address,
                 },
             tor: Tor { tor_socks5_port },
-        } => Ok(Arguments {
+        } => Arguments {
             env_config: env_config_from(is_testnet),
             debug,
             data_dir: data::data_dir_from(data, is_testnet)?,
@@ -82,13 +82,13 @@ where
                 ),
                 tor_socks5_port,
             },
-        }),
-        RawCommand::History => Ok(Arguments {
+        },
+        RawCommand::History => Arguments {
             env_config: env_config_from(is_testnet),
             debug,
             data_dir: data::data_dir_from(data, is_testnet)?,
             cmd: Command::History,
-        }),
+        },
         RawCommand::Resume {
             swap_id: SwapId { swap_id },
             seller_addr: SellerAddr { seller_addr },
@@ -103,7 +103,7 @@ where
                     monero_daemon_address,
                 },
             tor: Tor { tor_socks5_port },
-        } => Ok(Arguments {
+        } => Arguments {
             env_config: env_config_from(is_testnet),
             debug,
             data_dir: data::data_dir_from(data, is_testnet)?,
@@ -122,7 +122,7 @@ where
                 ),
                 tor_socks5_port,
             },
-        }),
+        },
         RawCommand::Cancel {
             swap_id: SwapId { swap_id },
             force,
@@ -131,7 +131,7 @@ where
                     bitcoin_electrum_rpc_url,
                     bitcoin_target_block,
                 },
-        } => Ok(Arguments {
+        } => Arguments {
             env_config: env_config_from(is_testnet),
             debug,
             data_dir: data::data_dir_from(data, is_testnet)?,
@@ -144,7 +144,7 @@ where
                 )?,
                 bitcoin_target_block: bitcoin_target_block_from(bitcoin_target_block, is_testnet),
             },
-        }),
+        },
         RawCommand::Refund {
             swap_id: SwapId { swap_id },
             force,
@@ -153,7 +153,7 @@ where
                     bitcoin_electrum_rpc_url,
                     bitcoin_target_block,
                 },
-        } => Ok(Arguments {
+        } => Arguments {
             env_config: env_config_from(is_testnet),
             debug,
             data_dir: data::data_dir_from(data, is_testnet)?,
@@ -166,8 +166,10 @@ where
                 )?,
                 bitcoin_target_block: bitcoin_target_block_from(bitcoin_target_block, is_testnet),
             },
-        }),
-    }
+        },
+    };
+
+    Ok(arguments)
 }
 
 #[derive(Debug, PartialEq)]
